@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carbonyx - 당신의 태양광 발전이 돈이 됩니다</title>
+    <meta name="description" content="3년 내 소각되는 배출권, 지금 바로 현금화하세요. 탄소배출권 거래 중개 플랫폼 Carbonyx">
+    <meta name="keywords" content="탄소배출권, 태양광, 발전, 수익, KCU, 배출권거래">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <img src="assets/images/carbonyx logo.png" alt="Carbonyx Logo" class="logo-img">
+                </div>
+                <div class="nav-menu">
+                    <a href="#about" class="nav-link">서비스 소개</a>
+                    <a href="#calculator" class="nav-link">수익 계산기</a>
+                    <a href="#process" class="nav-link">진행 과정</a>
+                    <a href="#contact" class="nav-link">문의하기</a>
+                </div>
+                <div class="nav-toggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">당신의 태양광 발전이<br><span class="highlight">돈이 됩니다</span></h1>
+                <h2 class="hero-subtitle">3년 내 소각되는 배출권, 지금 바로 현금화하세요</h2>
+                <button class="cta-button primary" onclick="scrollToSection('register')">사전 신청하기</button>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">100+</div>
+                        <div class="stat-label">참여 기업</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">₩688,500</div>
+                        <div class="stat-label">최대 수익 (100MWh)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Urgency Section -->
+    <section class="urgency-section" id="about">
+        <div class="container">
+            <div class="urgency-header">
+                <h2 class="section-title urgent">⚠️ 시급한 상황입니다</h2>
+            </div>
+
+            <!-- Real-time Market Price Dashboard -->
+            <div class="market-dashboard">
+                <h3>실시간 배출권 시세</h3>
+                <div class="price-grid">
+                    <div class="price-card">
+                        <div class="price-label">현재 KCU 가격</div>
+                        <div class="price-value" id="current-price">₩3,000 ~ ₩15,000</div>
+                        <div class="price-change positive" id="price-change">+5.2%</div>
+                    </div>
+                    <div class="price-card highlighted">
+                        <div class="price-label">오늘의 추천 판매가</div>
+                        <div class="price-value recommended" id="recommended-price">₩12,500</div>
+                        <div class="price-note">지금이 최적 타이밍!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="countdown-section">
+                <h3>2025년 발급 배출권 거래 마감까지</h3>
+                <div class="countdown-timer" id="countdown">
+                    <div class="time-unit">
+                        <div class="time-value" id="days">000</div>
+                        <div class="time-label">일</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-value" id="hours">00</div>
+                        <div class="time-label">시간</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-value" id="minutes">00</div>
+                        <div class="time-label">분</div>
+                    </div>
+                    <div class="time-unit">
+                        <div class="time-value" id="seconds">00</div>
+                        <div class="time-label">초</div>
+                    </div>
+                </div>
+                <p class="countdown-warning">마감 후엔 영구 손실!</p>
+            </div>
+
+            <!-- Risk Warnings -->
+            <div class="risk-warnings">
+                <h3>놓치면 안 되는 3가지 위험</h3>
+                <div class="warning-grid">
+                    <div class="warning-card">
+                        <div class="warning-icon">📅</div>
+                        <div class="warning-text">
+                            <strong>2025년 발급 배출권</strong><br>
+                            2025년 내 거래 필수
+                        </div>
+                    </div>
+                    <div class="warning-card">
+                        <div class="warning-icon">🔥</div>
+                        <div class="warning-text">
+                            <strong>3년 경과 배출권</strong><br>
+                            자동 소각 (회수 불가)
+                        </div>
+                    </div>
+                    <div class="warning-card">
+                        <div class="warning-icon">💸</div>
+                        <div class="warning-text">
+                            <strong>미전환 발전량</strong><br>
+                            영구 손실 (3년 기한 경과)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Revenue Calculator Section -->
+    <section class="calculator-section" id="calculator">
+        <div class="container">
+            <h2 class="section-title">수익 시뮬레이션</h2>
+            <div class="calculator-container">
+                <div class="calculator-input">
+                    <h3>발전량을 입력하세요</h3>
+                    <div class="input-group">
+                        <input type="number" id="generation-input" placeholder="예: 100" min="0">
+                        <span class="input-unit">MWh</span>
+                    </div>
+                    <button class="calculate-btn" onclick="calculateRevenue()">수익 계산하기</button>
+                </div>
+                <div class="calculator-result" id="calculator-result">
+                    <div class="calculation-steps">
+                        <div class="step">
+                            <span class="step-label">발전량</span>
+                            <span class="step-value" id="input-generation">0 MWh</span>
+                        </div>
+                        <div class="step-arrow">→</div>
+                        <div class="step">
+                            <span class="step-label">KCU 산출</span>
+                            <span class="step-value" id="calculated-kcu">0 KCU</span>
+                        </div>
+                        <div class="step-arrow">→</div>
+                        <div class="step">
+                            <span class="step-label">예상 수익</span>
+                            <span class="step-value" id="calculated-revenue">₩0</span>
+                        </div>
+                    </div>
+                    <div class="revenue-breakdown">
+                        <div class="revenue-item">
+                            <span class="label">최저가 (₩3,000)</span>
+                            <span class="value" id="min-revenue">₩0</span>
+                        </div>
+                        <div class="revenue-item">
+                            <span class="label">평균가 (₩9,000)</span>
+                            <span class="value" id="avg-revenue">₩0</span>
+                        </div>
+                        <div class="revenue-item highlighted">
+                            <span class="label">최고가 (₩15,000)</span>
+                            <span class="value" id="max-revenue">₩0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="case-studies">
+                <h3>실제 수익 사례</h3>
+                <div class="case-grid">
+                    <div class="case-card">
+                        <div class="case-generation">100MWh</div>
+                        <div class="case-arrow">→</div>
+                        <div class="case-kcu">45.9 KCU</div>
+                        <div class="case-arrow">→</div>
+                        <div class="case-revenue">최대 ₩688,500</div>
+                    </div>
+                    <div class="case-card">
+                        <div class="case-generation">500MWh</div>
+                        <div class="case-arrow">→</div>
+                        <div class="case-kcu">229.5 KCU</div>
+                        <div class="case-arrow">→</div>
+                        <div class="case-revenue">최대 ₩3,442,500</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section class="process-section" id="process">
+        <div class="container">
+            <h2 class="section-title">간단한 3단계 프로세스</h2>
+            <div class="process-grid">
+                <div class="process-step">
+                    <div class="step-number">1</div>
+                    <div class="step-icon">📋</div>
+                    <h3>발전량 제출</h3>
+                    <p>5분 내로 간단한<br>발전량 정보만 제출</p>
+                    <div class="step-duration">소요시간: 5분</div>
+                </div>
+                <div class="process-arrow">→</div>
+                <div class="process-step">
+                    <div class="step-number">2</div>
+                    <div class="step-icon">✅</div>
+                    <h3>자동 검증 & KCU 발급</h3>
+                    <p>복잡한 서류는 저희가<br>모두 처리합니다</p>
+                    <div class="step-duration">소요시간: 3-5일</div>
+                </div>
+                <div class="process-arrow">→</div>
+                <div class="process-step">
+                    <div class="step-number">3</div>
+                    <div class="step-icon">💰</div>
+                    <h3>거래 완료 & 즉시 정산</h3>
+                    <p>최적의 가격으로<br>즉시 현금화</p>
+                    <div class="step-duration">소요시간: 1일</div>
+                </div>
+            </div>
+            <div class="process-note">
+                <p><strong>복잡한 서류는 저희가 처리합니다</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trusted Companies Section -->
+    <section class="companies-section">
+        <div class="container">
+            <h2 class="section-title">대구경북 100+ 기업이 선택한 플랫폼</h2>
+            <div class="companies-slider">
+                <div class="companies-track" id="companies-track">
+                    <div class="company-logo">회사 A</div>
+                    <div class="company-logo">회사 B</div>
+                    <div class="company-logo">회사 C</div>
+                    <div class="company-logo">회사 D</div>
+                    <div class="company-logo">회사 E</div>
+                    <div class="company-logo">회사 F</div>
+                    <div class="company-logo">회사 G</div>
+                    <div class="company-logo">회사 H</div>
+                    <div class="company-logo">더 많은 기업...</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Registration Section -->
+    <section class="registration-section" id="register">
+        <div class="container">
+            <div class="registration-content">
+                <h2 class="section-title">전문가 무료 상담 신청</h2>
+                <p class="registration-subtitle">지금 신청하시면 맞춤형 수익 분석을 무료로 제공합니다</p>
+                <form class="registration-form" id="registration-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="company-name">기업명 *</label>
+                            <input type="text" id="company-name" name="company-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact-name">담당자명 *</label>
+                            <input type="text" id="contact-name" name="contact-name" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">연락처 *</label>
+                            <input type="tel" id="phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">이메일</label>
+                            <input type="email" id="email" name="email">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">전문가 무료 상담 신청</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <img src="assets/images/carbonyx logo.png" alt="Carbonyx Logo">
+                    </div>
+                    <p>탄소배출권 거래의 새로운 기준<br>Carbonyx와 함께하세요</p>
+                </div>
+                <div class="footer-section">
+                    <h4>연락처</h4>
+                    <p>전화: 1588-0000</p>
+                    <p>이메일: contact@carbonyx.co.kr</p>
+                    <p>주소: 대구광역시 수성구</p>
+                </div>
+                <div class="footer-section">
+                    <h4>서비스</h4>
+                    <ul>
+                        <li>배출권 거래 중개</li>
+                        <li>수익 분석 서비스</li>
+                        <li>전문가 상담</li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>법적 고지</h4>
+                    <ul>
+                        <li><a href="#">개인정보처리방침</a></li>
+                        <li><a href="#">이용약관</a></li>
+                        <li><a href="#">사업자 정보</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 Carbonyx. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Fixed CTA -->
+    <div class="fixed-cta" id="fixed-cta">
+        <div class="fixed-cta-content">
+            <div class="cta-info">
+                <div class="cta-price">현재 시세: ₩12,500</div>
+                <div class="cta-timer">남은 시간: <span id="fixed-timer">000일</span></div>
+            </div>
+            <button class="fixed-cta-btn" onclick="scrollToSection('register')">지금 사전 신청하기</button>
+        </div>
+    </div>
+
+    <script src="assets/js/script.js"></script>
+</body>
+</html>
