@@ -10,6 +10,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Header Section -->
@@ -339,6 +342,39 @@
         </div>
     </div>
 
+    <!-- MVP Test Notice Popup -->
+    <div class="popup-overlay" id="mvp-notice-popup">
+        <div class="popup-modal" role="dialog" aria-labelledby="popup-title" aria-describedby="popup-description">
+            <div class="popup-header">
+                <h3 id="popup-title">⚠️ 테스트 사이트 안내</h3>
+                <button class="popup-close" aria-label="팝업 닫기" tabindex="0">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <div class="popup-content">
+                <p id="popup-description">
+                    이 사이트는 Carbonyx 서비스 개발을 위한<br>
+                    <strong>테스트 버전</strong>입니다.
+                </p>
+                <ul class="popup-notice-list">
+                    <li>• 정식 서비스가 아닙니다</li>
+                    <li>• 데이터는 테스트용입니다</li>
+                    <li>• 사전 신청은 유효합니다</li>
+                </ul>
+                <div class="popup-contact">
+                    <p>문의: <a href="mailto:contact@carbonyx.co.kr">contact@carbonyx.co.kr</a></p>
+                </div>
+            </div>
+            <div class="popup-footer">
+                <button class="popup-confirm-btn" tabindex="0">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/supabase-client.js"></script>
+    <script src="assets/js/simple-form.js"></script>
+    <script src="assets/js/popup-notice.js"></script>
     <script src="assets/js/script.js"></script>
 </body>
 </html>

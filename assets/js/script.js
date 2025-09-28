@@ -165,6 +165,15 @@ function calculateRevenue() {
 
     // Animate numbers (optional enhancement)
     animateNumbers();
+
+    // Log calculator usage to Supabase
+    if (window.SupabaseClient) {
+        window.SupabaseClient.logCalculatorUsage(generationValue, kcuAmount, avgRevenue)
+            .catch(error => console.warn('Failed to log calculator usage:', error));
+    }
+
+    // Analytics tracking
+    trackCalculatorUsage(generationValue, avgRevenue);
 }
 
 function animateNumbers() {
@@ -184,7 +193,31 @@ function formatCurrency(amount) {
 }
 
 // Market Price Update Function
-function updateMarketPrices() {
+async function updateMarketPrices() {
+    // Try to get latest prices from Supabase first
+    if (window.SupabaseClient) {
+        try {
+            const result = await window.SupabaseClient.getLatestMarketPrices();
+
+            if (result.success && result.data) {
+                const prices = result.data;
+
+                // Update global market prices object
+                marketPrices.min = prices.min_price;
+                marketPrices.avg = prices.avg_price;
+                marketPrices.max = prices.max_price;
+                marketPrices.recommended = prices.recommended_price;
+
+                if (CONFIG.DEBUG) {
+                    console.log('Market prices updated from database:', prices);
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to fetch market prices from database:', error);
+        }
+    }
+
+    // Update UI elements
     const currentPriceElement = document.getElementById('current-price');
     const recommendedPriceElement = document.getElementById('recommended-price');
     const priceChangeElement = document.getElementById('price-change');
@@ -217,7 +250,16 @@ function updateMarketPrices() {
 function initFormValidation() {
     if (!registrationForm) return;
 
-    registrationForm.addEventListener('submit', handleFormSubmission);
+    // Supabase 전용 폼 처리 사용
+    registrationForm.addEventListener('submit', function(event) {
+        if (typeof handleSupabaseFormSubmission === 'function') {
+            handleSupabaseFormSubmission(event);
+        } else {
+            console.error('❌ Supabase form handler not loaded');
+            event.preventDefault();
+            alert('시스템 초기화 중입니다. 페이지를 새로고침해주세요.');
+        }
+    });
 
     // Real-time validation
     const inputs = registrationForm.querySelectorAll('input[required]');
@@ -225,6 +267,12 @@ function initFormValidation() {
         input.addEventListener('blur', validateField);
         input.addEventListener('input', clearFieldError);
     });
+
+    // 제출 버튼에 원본 텍스트 저장
+    const submitBtn = registrationForm.querySelector('.submit-btn');
+    if (submitBtn && !submitBtn.dataset.originalText) {
+        submitBtn.dataset.originalText = submitBtn.textContent;
+    }
 }
 
 function validateField(event) {
@@ -291,12 +339,27 @@ function clearFieldError(event) {
     removeFieldError(event.target);
 }
 
-function handleFormSubmission(event) {
+async function handleFormSubmission(event) {
     event.preventDefault();
+
+    console.log('Form submission started');
 
     // Validate all fields
     const formData = new FormData(registrationForm);
-    const data = Object.fromEntries(formData);
+    const data = {
+        companyName: formData.get('company-name'),
+        contactName: formData.get('contact-name'),
+        phone: formData.get('phone'),
+        email: formData.get('email')
+    };
+
+    console.log('Form data collected:', data);
+
+    // 기본 유효성 검사
+    if (!data.companyName || !data.contactName || !data.phone) {
+        alert('기업명, 담당자명, 연락처는 필수 입력 항목입니다.');
+        return;
+    }
 
     let isValid = true;
     const requiredFields = registrationForm.querySelectorAll('input[required]');
@@ -312,23 +375,99 @@ function handleFormSubmission(event) {
         return;
     }
 
-    // Simulate form submission
     const submitBtn = registrationForm.querySelector('.submit-btn');
     const originalText = submitBtn.textContent;
 
-    submitBtn.textContent = '신청 중...';
+    submitBtn.textContent = '신청 처리 중...';
     submitBtn.disabled = true;
 
-    // 실제 환경에서는 여기서 API 호출 또는 이메일 서비스 연동
-    setTimeout(() => {
-        alert('사전 신청이 완료되었습니다!\n전문가가 곧 연락드리겠습니다.');
-        registrationForm.reset();
+    try {
+        console.log('Attempting to save to database...');
+
+        // Supabase 클라이언트가 있는지 확인
+        if (!window.SupabaseClient) {
+            console.error('SupabaseClient not available, using fallback');
+            throw new Error('DATABASE_UNAVAILABLE');
+        }
+
+        // Supabase에 데이터 저장
+        const result = await window.SupabaseClient.savePreRegistration(data);
+        console.log('Database save result:', result);
+
+        if (result.success) {
+            // 성공 메시지
+            let successMessage = '사전 신청이 완료되었습니다!\n전문가가 곧 연락드리겠습니다.';
+
+            // 페이지 방문 로그 저장 (실패해도 메인 기능에 영향 없음)
+            try {
+                await window.SupabaseClient.logPageVisit(window.location.pathname, document.referrer);
+            } catch (logError) {
+                console.warn('Failed to log page visit:', logError);
+            }
+
+            alert(successMessage);
+            registrationForm.reset();
+
+            // Analytics tracking
+            if (typeof trackFormSubmission === 'function') {
+                trackFormSubmission(data);
+            }
+        } else {
+            throw new Error(result.error || 'Database save failed');
+        }
+    } catch (error) {
+        console.error('Form submission error:', error);
+
+        // Fallback: 로컬 저장 및 사용자 안내
+        if (error.message === 'DATABASE_UNAVAILABLE' ||
+            error.message.includes('Failed to fetch') ||
+            error.message.includes('network') ||
+            error.message.includes('connection')) {
+
+            // 로컬 스토리지에 임시 저장
+            saveToLocalStorage(data);
+
+            alert('현재 서버 연결에 문제가 있습니다.\n' +
+                  '입력하신 정보를 임시 저장했습니다.\n\n' +
+                  '직접 연락주시면 즉시 처리해드리겠습니다:\n' +
+                  '전화: 1588-0000\n' +
+                  '이메일: contact@carbonyx.co.kr');
+        } else {
+            // 기타 오류
+            alert('신청 중 오류가 발생했습니다.\n' +
+                  '다시 시도하시거나 전화로 연락주세요.\n\n' +
+                  '전화: 1588-0000\n' +
+                  '오류 코드: ' + (error.code || 'UNKNOWN'));
+        }
+
+        // 에러 추적
+        if (typeof trackError === 'function') {
+            trackError(error.message, 'form_submission');
+        }
+    } finally {
         submitBtn.textContent = originalText;
         submitBtn.disabled = false;
+    }
+}
 
-        // Analytics tracking (실제 환경에서 구현)
-        trackFormSubmission(data);
-    }, 2000);
+// 로컬 스토리지에 임시 저장하는 함수
+function saveToLocalStorage(data) {
+    try {
+        const timestamp = new Date().toISOString();
+        const localData = {
+            ...data,
+            timestamp,
+            status: 'pending_upload'
+        };
+
+        const existingData = JSON.parse(localStorage.getItem('pendingRegistrations') || '[]');
+        existingData.push(localData);
+        localStorage.setItem('pendingRegistrations', JSON.stringify(existingData));
+
+        console.log('Data saved to localStorage:', localData);
+    } catch (error) {
+        console.error('Failed to save to localStorage:', error);
+    }
 }
 
 // Analytics and Tracking Functions
@@ -462,9 +601,110 @@ if ('serviceWorker' in navigator) {
     });
 }
 
+// 디버깅용 상태 확인 함수
+function checkSystemStatus() {
+    const status = {
+        timestamp: new Date().toISOString(),
+        libraries: {
+            CONFIG: !!window.CONFIG,
+            supabase: !!window.supabase,
+            SupabaseClient: !!window.SupabaseClient,
+            fallbackForm: typeof handleFormSubmissionEnhanced === 'function'
+        },
+        config: window.CONFIG ? {
+            environment: window.CONFIG.ENVIRONMENT,
+            supabaseUrl: window.CONFIG.SUPABASE_URL ? 'configured' : 'missing',
+            debug: window.CONFIG.DEBUG
+        } : null,
+        form: {
+            element: !!registrationForm,
+            submitButton: !!document.querySelector('.submit-btn')
+        },
+        localStorage: {
+            available: typeof localStorage !== 'undefined',
+            formSubmissions: window.getLocalFormSubmissions ? window.getLocalFormSubmissions().length : 'unknown'
+        },
+        supabase: {
+            clientInitialized: !!(window.SupabaseClient && typeof window.SupabaseClient.savePreRegistration === 'function'),
+            initFunction: typeof initSupabase === 'function',
+            saveFunction: !!(window.SupabaseClient && typeof window.SupabaseClient.savePreRegistration === 'function'),
+            connectionTest: !!(window.SupabaseClient && typeof window.SupabaseClient.testConnection === 'function')
+        },
+        popup: {
+            initialized: !!window.MVPNoticePopup,
+            status: window.debugPopup ? window.debugPopup() : 'not available'
+        }
+    };
+
+    console.table(status.libraries);
+    console.log('🔍 Full system status:', status);
+
+    // 간단한 자동 진단
+    const issues = [];
+    if (!status.libraries.CONFIG) issues.push('CONFIG not loaded');
+    if (!status.libraries.supabase) issues.push('Supabase library not loaded');
+    if (!status.libraries.SupabaseClient) issues.push('SupabaseClient not initialized');
+    if (!status.supabase.clientInitialized) issues.push('Supabase client not ready');
+    if (!status.form.element) issues.push('Registration form not found');
+
+    if (issues.length > 0) {
+        console.warn('🚨 Detected issues:', issues);
+        console.log('💡 Try running: CarbonyxApp.debug.manualInit()');
+    } else {
+        console.log('✅ All systems appear ready');
+    }
+
+    return status;
+}
+
 // Export functions for testing or external use
 window.CarbonyxApp = {
     calculateRevenue,
     updateMarketPrices,
-    scrollToSection
+    scrollToSection,
+    checkSystemStatus,
+
+    // 디버깅 헬퍼들
+    debug: {
+        checkStatus: checkSystemStatus,
+        getLocalSubmissions: () => window.getLocalFormSubmissions ? window.getLocalFormSubmissions() : [],
+        clearLocalData: () => window.clearLocalFormSubmissions ? window.clearLocalFormSubmissions() : false,
+        manualInit: () => window.manualInitSupabase ? window.manualInitSupabase() : false,
+
+        // 팝업 디버깅 기능
+        popup: {
+            show: () => window.showPopup ? window.showPopup() : console.warn('Popup not initialized'),
+            hide: () => window.hidePopup ? window.hidePopup() : console.warn('Popup not initialized'),
+            status: () => window.debugPopup ? window.debugPopup() : { error: 'Popup not initialized' },
+            reset: () => window.resetPopup ? window.resetPopup() : console.warn('Popup not initialized')
+        },
+
+        // Supabase 연결 테스트
+        testSupabaseConnection: () => {
+            if (typeof testSupabaseConnection === 'function') {
+                return testSupabaseConnection();
+            } else {
+                console.error('❌ testSupabaseConnection function not available');
+                return Promise.resolve({ success: false, error: 'Test function not available' });
+            }
+        },
+
+        // 폼 제출 테스트
+        testFormSubmission: () => {
+            const testData = {
+                companyName: '테스트기업',
+                contactName: '김테스트',
+                phone: '010-1234-5678',
+                email: 'test@test.com'
+            };
+            console.log('🧪 Testing form submission with data:', testData);
+
+            if (window.SupabaseClient && typeof window.SupabaseClient.savePreRegistration === 'function') {
+                return window.SupabaseClient.savePreRegistration(testData);
+            } else {
+                console.error('❌ SupabaseClient not available');
+                return Promise.resolve({ success: false, error: 'SupabaseClient not available' });
+            }
+        }
+    }
 };
