@@ -150,11 +150,11 @@ class MVPNoticePopup {
             return;
         }
 
-        // 테스트 모드에서는 세션 기반으로만 체크 (페이지 새로고침 시 항상 표시)
+        // 테스트 모드에서는 페이지별로 체크 (페이지 새로고침 시 항상 표시)
         if (POPUP_CONFIG.testMode) {
-            const sessionShown = sessionStorage.getItem('popup_shown_this_session');
-            if (sessionShown === 'true') {
-                console.log('MVP Notice Popup: Already shown in this session (test mode)');
+            const pageShown = sessionStorage.getItem('popup_shown_this_page');
+            if (pageShown === 'true') {
+                console.log('MVP Notice Popup: Already shown on this page load (test mode)');
                 return;
             }
             console.log('MVP Notice Popup: Test mode - showing popup');
@@ -217,9 +217,9 @@ class MVPNoticePopup {
 
         // 표시 시간 저장
         if (POPUP_CONFIG.testMode) {
-            // 테스트 모드에서는 세션에만 기록
-            sessionStorage.setItem('popup_shown_this_session', 'true');
-            console.log('✅ MVP Notice Popup displayed (test mode - session only)');
+            // 테스트 모드에서는 현재 페이지 로드에만 기록
+            sessionStorage.setItem('popup_shown_this_page', 'true');
+            console.log('✅ MVP Notice Popup displayed (test mode - page load only)');
         } else {
             // 프로덕션 모드에서는 로컬스토리지에 기록
             localStorage.setItem(POPUP_CONFIG.storageKey, Date.now().toString());
@@ -243,8 +243,8 @@ class MVPNoticePopup {
 
         // 사용자가 직접 닫았음을 표시
         if (POPUP_CONFIG.testMode) {
-            // 테스트 모드에서는 세션에만 기록 (새 탭/창에서는 다시 표시됨)
-            sessionStorage.setItem('popup_shown_this_session', 'true');
+            // 테스트 모드에서는 현재 페이지 로드에만 기록
+            sessionStorage.setItem('popup_shown_this_page', 'true');
         } else {
             // 프로덕션 모드에서는 로컬스토리지에 기록
             localStorage.setItem(POPUP_CONFIG.dismissKey, 'true');
@@ -310,8 +310,8 @@ class MVPNoticePopup {
     resetState() {
         if (POPUP_CONFIG.testMode) {
             // 테스트 모드에서는 세션 스토리지 초기화
-            sessionStorage.removeItem('popup_shown_this_session');
-            console.log('✅ Popup state reset (test mode - session storage cleared)');
+            sessionStorage.removeItem('popup_shown_this_page');
+            console.log('✅ Popup state reset (test mode - page session cleared)');
         } else {
             // 프로덕션 모드에서는 로컬 스토리지 초기화
             localStorage.removeItem(POPUP_CONFIG.storageKey);
@@ -324,7 +324,7 @@ class MVPNoticePopup {
     getStatus() {
         const lastShown = localStorage.getItem(POPUP_CONFIG.storageKey);
         const userDismissed = localStorage.getItem(POPUP_CONFIG.dismissKey);
-        const sessionShown = sessionStorage.getItem('popup_shown_this_session');
+        const sessionShown = sessionStorage.getItem('popup_shown_this_page');
 
         return {
             enabled: POPUP_CONFIG.enabled,
@@ -369,6 +369,10 @@ function waitForConfigAndInit() {
 
 // DOM 로드 완료 후 초기화
 document.addEventListener('DOMContentLoaded', function() {
+    // 페이지 새로고침 시 세션 스토리지 초기화
+    sessionStorage.removeItem('popup_shown_this_page');
+    console.log('🔄 Page refreshed - popup session reset');
+
     // 약간의 지연 후 CONFIG 확인 및 초기화
     setTimeout(waitForConfigAndInit, 200);
 });

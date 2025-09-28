@@ -43,10 +43,20 @@ function validatePhoneFormat(phone) {
     return phoneRegex.test(phone.replace(/\s/g, ''));
 }
 
+// 중복 제출 방지 플래그
+let isSubmitting = false;
+
 // Supabase 전용 폼 제출 처리
 async function handleSupabaseFormSubmission(event) {
     event.preventDefault();
 
+    // 중복 제출 방지
+    if (isSubmitting) {
+        console.warn('⚠️ Form submission already in progress');
+        return;
+    }
+
+    isSubmitting = true;
     console.log('📝 Supabase form submission started');
 
     try {
@@ -70,9 +80,11 @@ async function handleSupabaseFormSubmission(event) {
 
         // 제출 버튼 상태 변경
         const submitBtn = event.target.querySelector('.submit-btn');
-        const originalText = submitBtn.textContent;
-        submitBtn.textContent = '신청 처리 중...';
-        submitBtn.disabled = true;
+        const originalText = submitBtn ? submitBtn.textContent : '신청하기';
+        if (submitBtn) {
+            submitBtn.textContent = '신청 처리 중...';
+            submitBtn.disabled = true;
+        }
 
         // Supabase 연결 상태 확인
         console.log('🔍 Checking Supabase connection...');
@@ -88,16 +100,25 @@ async function handleSupabaseFormSubmission(event) {
             throw new Error('savePreRegistration function is not available');
         }
 
-        // Supabase에 데이터 저장
+        // Supabase에 데이터 저장 (단일 방법으로 통일)
         console.log('🔄 Submitting to Supabase...');
-        const result = await window.SupabaseClient.savePreRegistration(data);
 
+        const result = await window.SupabaseClient.savePreRegistration(data);
         console.log('📤 Supabase result:', result);
 
         if (result.success) {
             alert('✅ 사전 신청이 완료되었습니다!\n전문가가 곧 연락드리겠습니다.');
             event.target.reset();
+
+            // 성공 후 버튼 상태 즉시 복원
+            if (submitBtn) {
+                submitBtn.textContent = originalText || '신청하기';
+                submitBtn.disabled = false;
+            }
+
             console.log('✅ Form submission successful');
+            isSubmitting = false; // 성공 시 플래그 해제
+            return; // 성공 시 finally 블록 실행 방지
         } else {
             throw new Error(result.error || 'Unknown Supabase error');
         }
@@ -123,12 +144,13 @@ async function handleSupabaseFormSubmission(event) {
         alert(userMessage);
 
     } finally {
-        // 버튼 상태 복원
+        // 버튼 상태 복원 및 플래그 해제
         const submitBtn = event.target.querySelector('.submit-btn');
         if (submitBtn) {
-            submitBtn.textContent = originalText;
+            submitBtn.textContent = originalText || '신청하기';
             submitBtn.disabled = false;
         }
+        isSubmitting = false; // 에러 시에도 플래그 해제
     }
 }
 
@@ -164,4 +186,92 @@ async function testSupabaseConnection() {
 window.handleSupabaseFormSubmission = handleSupabaseFormSubmission;
 window.testSupabaseConnection = testSupabaseConnection;
 
-console.log('📋 Simple Supabase form handler loaded');
+// DOM이 로드되면 폼 이벤트 연결
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('📋 Simple Supabase form handler loaded');
+
+    // 폼 요소 찾기
+    const registrationForm = document.getElementById('registration-form');
+
+    if (registrationForm) {
+        console.log('✅ Registration form found, attaching event listener');
+
+        // 폼 제출 이벤트 연결
+        registrationForm.addEventListener('submit', handleSupabaseFormSubmission);
+
+        console.log('🔗 Form event listener attached successfully');
+    } else {
+        console.error('❌ Registration form not found in DOM');
+    }
+
+    // 디버깅용 전역 테스트 함수 노출
+    window.debugSupabaseForm = function() {
+        console.log('🧪 Supabase Form Debug Info:');
+        console.log('- Form element:', !!document.getElementById('registration-form'));
+        console.log('- CONFIG available:', !!window.CONFIG);
+        console.log('- Supabase library:', !!window.supabase);
+        console.log('- SupabaseClient:', !!window.SupabaseClient);
+
+        if (window.SupabaseClient) {
+            console.log('- SupabaseClient methods:', Object.keys(window.SupabaseClient));
+        }
+
+        return {
+            formExists: !!document.getElementById('registration-form'),
+            configLoaded: !!window.CONFIG,
+            supabaseLoaded: !!window.supabase,
+            clientInitialized: !!window.SupabaseClient
+        };
+    };
+
+    // RLS 정책 테스트 함수
+    window.testSupabaseInsert = async function() {
+        console.log('🧪 Testing Supabase insert capabilities...');
+
+        if (!window.SupabaseClient) {
+            console.error('❌ SupabaseClient not available');
+            return { success: false, error: 'SupabaseClient not initialized' };
+        }
+
+        try {
+            // 테스트 데이터 삽입
+            const testData = {
+                companyName: '테스트회사_' + Date.now(),
+                contactName: '테스트담당자',
+                phone: '010-1234-5678',
+                email: 'test@example.com'
+            };
+
+            console.log('📝 Testing with data:', testData);
+
+            const result = await window.SupabaseClient.savePreRegistration(testData);
+            console.log('📊 Insert test result:', result);
+
+            return result;
+
+        } catch (error) {
+            console.error('❌ Insert test failed:', error);
+            return { success: false, error: error.message };
+        }
+    };
+
+    // page_analytics 테스트 함수
+    window.testPageAnalytics = async function() {
+        console.log('🧪 Testing page analytics insert...');
+
+        if (!window.SupabaseClient) {
+            console.error('❌ SupabaseClient not available');
+            return { success: false, error: 'SupabaseClient not initialized' };
+        }
+
+        try {
+            const result = await window.SupabaseClient.logPageVisit('/', 'test-referrer');
+            console.log('📊 Page analytics test result:', result);
+            return result;
+
+        } catch (error) {
+            console.error('❌ Page analytics test failed:', error);
+            return { success: false, error: error.message };
+        }
+    };
+});

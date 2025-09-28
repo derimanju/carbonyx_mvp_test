@@ -65,9 +65,7 @@ async function savePreRegistration(formData) {
             company_name: formData.companyName,
             contact_name: formData.contactName,
             phone: formData.phone,
-            email: formData.email || null,
-            generation_capacity: formData.generationCapacity || null,
-            status: 'pending'
+            email: formData.email || null
         };
 
         console.log('📝 Prepared data for insertion:', registrationData);
