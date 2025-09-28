@@ -56,3 +56,6 @@ coverage/
 
 # nyc test coverage
 .nyc_output
+
+# Replaced by simple-form.js
+assets/js/fallback-form.js
